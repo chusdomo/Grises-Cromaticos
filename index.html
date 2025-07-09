@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grises Cromáticos - Paleta Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .color-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .color-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .color-swatch {
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        .color-info {
+            padding: 15px;
+        }
+        .color-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .color-values {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .color-value {
+            font-size: 12px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        .copy-notification.show {
+            transform: translateX(0);
+        }
+        .base-color-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .stats {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .palette-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Grises Cromáticos</h1>
+            <p>Paleta Web Interactiva - 16 tipos de grises con base cromática</p>
+        </div>
+        <div class="controls">
+            <div class="filter-group">
+                <label for="baseColor">Color Base:</label>
+                <select id="baseColor">
+                    <option value="all">Todos los colores</option>
+                    <option value="red">Rojo</option>
+                    <option value="yellow">Amarillo</option>
+                    <option value="blue">Azul</option>
+                    <option value="green">Verde</option>
+                    <option value="orange">Naranja</option>
+                    <option value="violet">Violeta</option>
+                </select>
+                <label for="grayType">Tipo de Gris:</label>
+                <select id="grayType">
+                    <option value="all">Todos los tipos</option>
+                    <option value="warm">Cálidos</option>
+                    <option value="cool">Fríos</option>
+                    <option value="neutral">Neutrales</option>
+                </select>
+                <label for="searchInput">Buscar:</label>
+                <input type="text" id="searchInput" placeholder="Nombre del color...">
+            </div>
+        </div>
+        <div class="palette-grid" id="paletteGrid">
+            <!-- Los colores se generarán dinámicamente -->
+        </div>
+        <div class="stats">
+            <h3>Estadísticas de la Paleta</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalColors">96</div>
+                    <div class="stat-label">Colores Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="visibleColors">96</div>
+                    <div class="stat-label">Colores Visibles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Colores Base</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">Tipos de Gris</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="copy-notification" id="copyNotification">
+        ¡Código copiado al portapapeles!
+    </div>
+    <script>
+        // Traducciones de nombres de colores a español
+        const grayNamesSpanish = {
+            "ash-gray": "Gris Ceniza",
+            "steel-gray": "Gris Acero",
+            "slate-gray": "Gris Pizarra",
+            "charcoal-gray": "Gris Carbón",
+            "graphite-gray": "Gris Grafito",
+            "pearl-gray": "Gris Perlado",
+            "silver-gray": "Gris Plateado",
+            "dove-gray": "Gris Paloma",
+            "storm-gray": "Gris Tormenta",
+            "midnight-gray": "Gris Medianoche",
+            "warm-gray": "Gris Cálido",
+            "cool-gray": "Gris Frío",
+            "neutral-gray": "Gris Neutro",
+            "light-gray": "Gris Claro",
+            "medium-gray": "Gris Medio",
+            "dark-gray": "Gris Oscuro"
+        };
+
+        // Datos de los grises cromáticos
+        const chromaticGrays = {
+            red: {
+                "ash-gray": { hex: "#B8B5B3", rgb: "184, 181, 179", hsl: "30, 4%, 71%" },
+                "steel-gray": { hex: "#71747A", rgb: "113, 116, 122", hsl: "220, 4%, 46%" },
+                "slate-gray": { hex: "#6B7280", rgb: "107, 114, 128", hsl: "220, 13%, 46%" },
+                "charcoal-gray": { hex: "#374151", rgb: "55, 65, 81", hsl: "220, 19%, 27%" },
+                "graphite-gray": { hex: "#1F2937", rgb: "31, 41, 55", hsl: "220, 28%, 17%" },
+                "pearl-gray": { hex: "#F3F4F6", rgb: "243, 244, 246", hsl: "220, 14%, 96%" },
+                "silver-gray": { hex: "#E5E7EB", rgb: "229, 231, 235", hsl: "220, 13%, 91%" },
+                "dove-gray": { hex: "#9CA3AF", rgb: "156, 163, 175", hsl: "220, 9%, 65%" },
+                "storm-gray": { hex: "#6B7280", rgb: "107, 114, 128", hsl: "220, 13%, 46%" },
+                "midnight-gray": { hex: "#111827", rgb: "17, 24, 39", hsl: "220, 39%, 11%" },
+                "warm-gray": { hex: "#A8A29E", rgb: "168, 162, 158", hsl: "24, 6%, 64%" },
+                "cool-gray": { hex: "#9CA3AF", rgb: "156, 163, 175", hsl: "220, 9%, 65%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D1D5DB", rgb: "209, 213, 219", hsl: "220, 8%, 84%" },
+                "medium-gray": { hex: "#6B7280", rgb: "107, 114, 128", hsl: "220, 13%, 46%" },
+                "dark-gray": { hex: "#374151", rgb: "55, 65, 81", hsl: "220, 19%, 27%" }
+            },
+            yellow: {
+                "ash-gray": { hex: "#B8B6B3", rgb: "184, 182, 179", hsl: "36, 4%, 71%" },
+                "steel-gray": { hex: "#757378", rgb: "117, 115, 120", hsl: "264, 2%, 46%" },
+                "slate-gray": { hex: "#6F7280", rgb: "111, 114, 128", hsl: "228, 7%, 47%" },
+                "charcoal-gray": { hex: "#3B4151", rgb: "59, 65, 81", hsl: "224, 16%, 27%" },
+                "graphite-gray": { hex: "#232937", rgb: "35, 41, 55", hsl: "222, 22%, 18%" },
+                "pearl-gray": { hex: "#F4F4F6", rgb: "244, 244, 246", hsl: "240, 9%, 96%" },
+                "silver-gray": { hex: "#E7E7EB", rgb: "231, 231, 235", hsl: "240, 7%, 91%" },
+                "dove-gray": { hex: "#9E9FAF", rgb: "158, 159, 175", hsl: "236, 9%, 65%" },
+                "storm-gray": { hex: "#6F7280", rgb: "111, 114, 128", hsl: "228, 7%, 47%" },
+                "midnight-gray": { hex: "#151827", rgb: "21, 24, 39", hsl: "230, 30%, 12%" },
+                "warm-gray": { hex: "#AAA29E", rgb: "170, 162, 158", hsl: "20, 6%, 64%" },
+                "cool-gray": { hex: "#9E9FAF", rgb: "158, 159, 175", hsl: "236, 9%, 65%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D3D3DB", rgb: "211, 211, 219", hsl: "240, 8%, 84%" },
+                "medium-gray": { hex: "#6F7280", rgb: "111, 114, 128", hsl: "228, 7%, 47%" },
+                "dark-gray": { hex: "#3B4151", rgb: "59, 65, 81", hsl: "224, 16%, 27%" }
+            },
+            blue: {
+                "ash-gray": { hex: "#B3B5B8", rgb: "179, 181, 184", hsl: "204, 4%, 71%" },
+                "steel-gray": { hex: "#6E7175", rgb: "110, 113, 117", hsl: "214, 3%, 45%" },
+                "slate-gray": { hex: "#626B72", rgb: "98, 107, 114", hsl: "206, 7%, 42%" },
+                "charcoal-gray": { hex: "#31373B", rgb: "49, 55, 59", hsl: "204, 9%, 21%" },
+                "graphite-gray": { hex: "#191F23", rgb: "25, 31, 35", hsl: "204, 17%, 12%" },
+                "pearl-gray": { hex: "#F3F4F4", rgb: "243, 244, 244", hsl: "180, 4%, 96%" },
+                "silver-gray": { hex: "#E5E7E7", rgb: "229, 231, 231", hsl: "180, 3%, 90%" },
+                "dove-gray": { hex: "#9CA3A3", rgb: "156, 163, 163", hsl: "180, 3%, 63%" },
+                "storm-gray": { hex: "#626B72", rgb: "98, 107, 114", hsl: "206, 7%, 42%" },
+                "midnight-gray": { hex: "#0F1115", rgb: "15, 17, 21", hsl: "220, 17%, 7%" },
+                "warm-gray": { hex: "#A8A29E", rgb: "168, 162, 158", hsl: "24, 6%, 64%" },
+                "cool-gray": { hex: "#9CA3A3", rgb: "156, 163, 163", hsl: "180, 3%, 63%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D1D5D5", rgb: "209, 213, 213", hsl: "180, 4%, 83%" },
+                "medium-gray": { hex: "#626B72", rgb: "98, 107, 114", hsl: "206, 7%, 42%" },
+                "dark-gray": { hex: "#31373B", rgb: "49, 55, 59", hsl: "204, 9%, 21%" }
+            },
+            green: {
+                "ash-gray": { hex: "#B3B8B5", rgb: "179, 184, 181", hsl: "144, 4%, 71%" },
+                "steel-gray": { hex: "#6E757A", rgb: "110, 117, 122", hsl: "145, 5%, 45%" },
+                "slate-gray": { hex: "#627280", rgb: "98, 114, 128", hsl: "208, 13%, 44%" },
+                "charcoal-gray": { hex: "#313B41", rgb: "49, 59, 65", hsl: "203, 14%, 22%" },
+                "graphite-gray": { hex: "#192327", rgb: "25, 35, 39", hsl: "197, 22%, 13%" },
+                "pearl-gray": { hex: "#F3F4F4", rgb: "243, 244, 244", hsl: "120, 4%, 96%" },
+                "silver-gray": { hex: "#E5E7EB", rgb: "229, 231, 235", hsl: "180, 13%, 91%" },
+                "dove-gray": { hex: "#9CA3AF", rgb: "156, 163, 175", hsl: "220, 9%, 65%" },
+                "storm-gray": { hex: "#627280", rgb: "98, 114, 128", hsl: "208, 13%, 44%" },
+                "midnight-gray": { hex: "#0F1527", rgb: "15, 21, 39", hsl: "225, 44%, 11%" },
+                "warm-gray": { hex: "#A8A29E", rgb: "168, 162, 158", hsl: "24, 6%, 64%" },
+                "cool-gray": { hex: "#9CA3AF", rgb: "156, 163, 175", hsl: "220, 9%, 65%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D1D5DB", rgb: "209, 213, 219", hsl: "220, 8%, 84%" },
+                "medium-gray": { hex: "#627280", rgb: "98, 114, 128", hsl: "208, 13%, 44%" },
+                "dark-gray": { hex: "#313B41", rgb: "49, 59, 65", hsl: "203, 14%, 22%" }
+            },
+            orange: {
+                "ash-gray": { hex: "#B8B5B3", rgb: "184, 181, 179", hsl: "24, 4%, 71%" },
+                "steel-gray": { hex: "#75717A", rgb: "117, 113, 122", hsl: "276, 4%, 46%" },
+                "slate-gray": { hex: "#706B80", rgb: "112, 107, 128", hsl: "254, 9%, 46%" },
+                "charcoal-gray": { hex: "#3A3751", rgb: "58, 55, 81", hsl: "247, 19%, 27%" },
+                "graphite-gray": { hex: "#221F37", rgb: "34, 31, 55", hsl: "248, 28%, 17%" },
+                "pearl-gray": { hex: "#F4F3F6", rgb: "244, 243, 246", hsl: "260, 14%, 96%" },
+                "silver-gray": { hex: "#E7E5EB", rgb: "231, 229, 235", hsl: "260, 13%, 91%" },
+                "dove-gray": { hex: "#9F9CAF", rgb: "159, 156, 175", hsl: "249, 9%, 65%" },
+                "storm-gray": { hex: "#706B80", rgb: "112, 107, 128", hsl: "254, 9%, 46%" },
+                "midnight-gray": { hex: "#181127", rgb: "24, 17, 39", hsl: "259, 39%, 11%" },
+                "warm-gray": { hex: "#AAA29E", rgb: "170, 162, 158", hsl: "20, 6%, 64%" },
+                "cool-gray": { hex: "#9F9CAF", rgb: "159, 156, 175", hsl: "249, 9%, 65%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D3D1DB", rgb: "211, 209, 219", hsl: "252, 8%, 84%" },
+                "medium-gray": { hex: "#706B80", rgb: "112, 107, 128", hsl: "254, 9%, 46%" },
+                "dark-gray": { hex: "#3A3751", rgb: "58, 55, 81", hsl: "247, 19%, 27%" }
+            },
+            violet: {
+                "ash-gray": { hex: "#B5B3B8", rgb: "181, 179, 184", hsl: "264, 4%, 71%" },
+                "steel-gray": { hex: "#716E7A", rgb: "113, 110, 122", hsl: "255, 5%, 45%" },
+                "slate-gray": { hex: "#6B6280", rgb: "107, 98, 128", hsl: "258, 13%, 44%" },
+                "charcoal-gray": { hex: "#373141", rgb: "55, 49, 65", hsl: "263, 14%, 22%" },
+                "graphite-gray": { hex: "#1F1927", rgb: "31, 25, 39", hsl: "266, 22%, 13%" },
+                "pearl-gray": { hex: "#F4F3F6", rgb: "244, 243, 246", hsl: "260, 14%, 96%" },
+                "silver-gray": { hex: "#E7E5EB", rgb: "231, 229, 235", hsl: "260, 13%, 91%" },
+                "dove-gray": { hex: "#A39CAF", rgb: "163, 156, 175", hsl: "262, 9%, 65%" },
+                "storm-gray": { hex: "#6B6280", rgb: "107, 98, 128", hsl: "258, 13%, 44%" },
+                "midnight-gray": { hex: "#110F27", rgb: "17, 15, 39", hsl: "265, 44%, 11%" },
+                "warm-gray": { hex: "#A8A29E", rgb: "168, 162, 158", hsl: "24, 6%, 64%" },
+                "cool-gray": { hex: "#A39CAF", rgb: "163, 156, 175", hsl: "262, 9%, 65%" },
+                "neutral-gray": { hex: "#737373", rgb: "115, 115, 115", hsl: "0, 0%, 45%" },
+                "light-gray": { hex: "#D5D1DB", rgb: "213, 209, 219", hsl: "264, 8%, 84%" },
+                "medium-gray": { hex: "#6B6280", rgb: "107, 98, 128", hsl: "258, 13%, 44%" },
+                "dark-gray": { hex: "#373141", rgb: "55, 49, 65", hsl: "263, 14%, 22%" }
+            }
+        };
+        // Configuración de colores base
+        const baseColors = {
+            red: '#DC2626',
+            yellow: '#EAB308',
+            blue: '#2563EB',
+            green: '#16A34A',
+            orange: '#EA580C',
+            violet: '#7C3AED'
+        };
+        // Clasificación de tipos de gris
+        const grayTypes = {
+            warm: ['warm-gray', 'ash-gray', 'pearl-gray', 'silver-gray'],
+            cool: ['cool-gray', 'steel-gray', 'slate-gray', 'dove-gray', 'storm-gray'],
+            neutral: ['neutral-gray', 'light-gray', 'medium-gray', 'dark-gray', 'charcoal-gray', 'graphite-gray', 'midnight-gray']
+        };
+        let currentColors = [];
+        let filteredColors = [];
+
+        function getSpanishGrayName(name) {
+            return grayNamesSpanish[name] || name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        // Inicializar la aplicación
+        function init() {
+            generateColorData();
+            renderColors();
+            setupEventListeners();
+        }
+
+        // Generar datos de colores
+        function generateColorData() {
+            currentColors = [];
+            Object.keys(chromaticGrays).forEach(baseColor => {
+                Object.keys(chromaticGrays[baseColor]).forEach(grayName => {
+                    const colorData = chromaticGrays[baseColor][grayName];
+                    currentColors.push({
+                        name: grayName,
+                        baseColor: baseColor,
+                        hex: colorData.hex,
+                        rgb: colorData.rgb,
+                        hsl: colorData.hsl,
+                        type: getGrayType(grayName)
+                    });
+                });
+            });
+            filteredColors = [...currentColors];
+        }
+
+        // Obtener tipo de gris
+        function getGrayType(grayName) {
+            for (const [type, grays] of Object.entries(grayTypes)) {
+                if (grays.includes(grayName)) {
+                    return type;
+                }
+            }
+            return 'neutral';
+        }
+
+        // Renderizar colores
+        function renderColors() {
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+            filteredColors.forEach(color => {
+                const card = createColorCard(color);
+                grid.appendChild(card);
+            });
+            updateStats();
+        }
+
+        // Crear tarjeta de color
+        function createColorCard(color) {
+            const card = document.createElement('div');
+            card.className = 'color-card';
+            card.onclick = () => copyToClipboard(color.hex);
+            card.innerHTML = `
+                <div class="color-swatch" style="background-color: ${color.hex}">
+                    <div class="base-color-indicator" style="background-color: ${baseColors[color.baseColor]}"></div>
+                    ${color.hex}
+                </div>
+                <div class="color-info">
+                    <div class="color-name">${getSpanishGrayName(color.name)}</div>
+                    <div class="color-values">
+                        <div class="color-value">HEX: ${color.hex}</div>
+                        <div class="color-value">RGB: ${color.rgb}</div>
+                        <div class="color-value">HSL: ${color.hsl}</div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Copiar al portapapeles
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification();
+            });
+        }
+
+        // Mostrar notificación
+        function showNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            document.getElementById('baseColor').addEventListener('change', filterColors);
+            document.getElementById('grayType').addEventListener('change', filterColors);
+            document.getElementById('searchInput').addEventListener('input', filterColors);
+        }
+
+        // Filtrar colores
+        function filterColors() {
+            const baseColor = document.getElementById('baseColor').value;
+            const grayType = document.getElementById('grayType').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredColors = currentColors.filter(color => {
+                const matchesBase = baseColor === 'all' || color.baseColor === baseColor;
+                const matchesType = grayType === 'all' || color.type === grayType;
+                const matchesSearch = searchTerm === '' || 
+                    color.name.toLowerCase().includes(searchTerm) ||
+                    color.baseColor.toLowerCase().includes(searchTerm);
+                return matchesBase && matchesType && matchesSearch;
+            });
+            renderColors();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('visibleColors').textContent = filteredColors.length;
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
